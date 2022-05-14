@@ -26,9 +26,9 @@ import QtQuick 2.6
 
 FABBase {
     id: root
-    property alias model: repeater.model
+    property var model
 
-    onClicked: model ? model = null : model = 5
+    onClicked: repeater.model ? repeater.model = null : repeater.model = root.model
 
     Column {
         anchors {
@@ -45,10 +45,8 @@ FABBase {
 
             delegate: FABBase {
                 diameter: root.diameter * 0.8
-                icon: "https://static.wikia.nocookie.net/memes9731/images/d/da/IA2G3ORVG.jpg/revision/latest/scale-to-width-down/250?cb=20200528160845&path-prefix=ru"
-                text: index
-
-                onClicked: console.log("clicked", index)
+                icon: model.icon
+                text: model.text
             }
         }
     }

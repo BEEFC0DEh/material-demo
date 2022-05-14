@@ -73,7 +73,6 @@ Item {
         anchors.fill: background
 
         sourceItem: root.icon != "" ? iconSource : background
-        onSourceItemChanged: console.log(root.icon, sourceItem)
         visible: false
     }
 
