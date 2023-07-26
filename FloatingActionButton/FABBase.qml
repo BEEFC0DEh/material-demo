@@ -38,17 +38,6 @@ Item {
     width: 50
     height: width
 
-    Rectangle {
-        id: background
-
-        anchors.fill: parent
-
-        radius: root.diameter / 2
-        color: "#6E14EF"
-
-        visible: false
-    }
-
     Image {
         id: icon
 
@@ -58,31 +47,23 @@ Item {
         visible: false
     }
 
-    OpacityMask {
-        id: iconSource
-
+    RectangularGlow {
         anchors.fill: background
-
-        source: icon
-        maskSource: background
+        glowRadius: 10
+        spread: 0.2
+        color: "black"
+        cornerRadius: height / 2 + glowRadius
     }
 
-    ShaderEffectSource {
-        id: bgSource
+    Rectangle {
+        id: background
 
-        anchors.fill: background
+        anchors.fill: parent
 
-        sourceItem: root.icon != "" ? iconSource : background
-        visible: false
-    }
+        radius: root.diameter / 2
+        color: "#6E14EF"
 
-    DropShadow {
-        anchors.fill: background
-        source: bgSource
-        color: "gray"
-        verticalOffset: background.radius / 2
-        radius: background.radius
-        samples: 17
+        visible: !highlight.hasSrc
     }
 
     ShaderEffect {
@@ -93,7 +74,8 @@ Item {
         property real touchAlpha: 0.5
         property point lastTouch
         property point center: Qt.point(radius, radius)
-        property variant src: bgSource
+        property variant src: icon
+        property int hasSrc: root.icon != ""
 
         anchors.fill: background
 
@@ -107,17 +89,26 @@ Item {
             uniform lowp float touchAlpha;
             uniform lowp float qt_Opacity;
             uniform sampler2D src;
+            uniform lowp int hasSrc;
 
             void main() {
-                highp float dist = touchRadius - distance(lastTouch, gl_FragCoord.xy);
-                highp float maxDist = radius - distance(center, gl_FragCoord.xy);
-                lowp vec4 col = texture2D(src, qt_TexCoord0);
-                if (dist >= 0. && maxDist >= 0.) {
-                    col = mix(col, vec4(1., 1., 1., 1.), touchAlpha);
+                mediump float dist = touchRadius - distance(lastTouch, gl_FragCoord.xy);
+                mediump float maxDist = radius - distance(center, gl_FragCoord.xy);
+                lowp vec4 col = vec4(0.0);
+                if (maxDist >= 0.) {
+                    if (hasSrc != 0) {
+                        col = texture2D(src, qt_TexCoord0);
+                    }
+                    if (dist >= 0.) {
+                        col = mix(col, vec4(1., 1., 1., 1.), touchAlpha);
+                    }
+                    mediump float aaBorder = maxDist / 2.;
+                    col *= clamp(aaBorder, 0., 1.);
                 }
-                gl_FragColor = col * qt_Opacity;
 
-            }"
+                gl_FragColor = col * qt_Opacity;
+            }
+        "
 
         // Maps gl_FragCoord from scene coordinates to the item coordinates
         layer.enabled: true
