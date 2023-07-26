@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import QtQuick 2.0
+import QtQuick 2.4
 import QtGraphicalEffects 1.0
 
 Item {
@@ -70,10 +70,12 @@ Item {
         id: highlight
 
         property real radius: background.radius
+        property real radiusNorm: radius / height
         property real touchRadius
+        onTouchRadiusChanged: console.log(touchRadius)
         property real touchAlpha: 0.5
         property point lastTouch
-        property point center: Qt.point(radius, radius)
+        property point center: Qt.point(0.5, 0.5)
         property variant src: icon
         property int hasSrc: root.icon != ""
 
@@ -82,36 +84,35 @@ Item {
         fragmentShader: "
             varying highp vec2 qt_TexCoord0;
 
+            uniform highp vec4 qt_SubRect_src;
             uniform highp vec2 lastTouch;
             uniform highp vec2 center;
             uniform mediump float radius;
+            uniform mediump float radiusNorm;
             uniform mediump float touchRadius;
             uniform lowp float touchAlpha;
             uniform lowp float qt_Opacity;
-            uniform sampler2D src;
+            uniform lowp sampler2D src;
             uniform lowp int hasSrc;
 
             void main() {
-                mediump float dist = touchRadius - distance(lastTouch, gl_FragCoord.xy);
-                mediump float maxDist = radius - distance(center, gl_FragCoord.xy);
+                mediump float dist = touchRadius - distance(lastTouch, qt_TexCoord0);
+                mediump float maxDist = radiusNorm - distance(center, qt_TexCoord0);
                 lowp vec4 col = vec4(0.0);
                 if (maxDist >= 0.) {
                     if (hasSrc != 0) {
-                        col = texture2D(src, qt_TexCoord0);
+                        col = texture2D(src, qt_SubRect_src.xy + qt_SubRect_src.zw * qt_TexCoord0);
                     }
                     if (dist >= 0.) {
                         col = mix(col, vec4(1., 1., 1., 1.), touchAlpha);
                     }
-                    mediump float aaBorder = maxDist / 2.;
+                    mediump float aaBorder = maxDist * radius * 3.;
                     col *= clamp(aaBorder, 0., 1.);
                 }
 
                 gl_FragColor = col * qt_Opacity;
             }
         "
-
-        // Maps gl_FragCoord from scene coordinates to the item coordinates
-        layer.enabled: true
 
         states: [
             State { name: "touched" }
@@ -132,7 +133,7 @@ Item {
                     NumberAnimation {
                         target: highlight
                         property: "touchRadius"
-                        to: background.width * 1.1
+                        to: 1.1
                         duration: 150
                     }
                 }
@@ -166,7 +167,7 @@ Item {
     MouseArea {
         anchors.fill: background
         onPressed: {
-            highlight.lastTouch = Qt.point(mouse.x, mouse.y)
+            highlight.lastTouch = Qt.point(mouse.x / width, mouse.y / height)
             highlight.state = "touched"
             root.pressed()
         }
