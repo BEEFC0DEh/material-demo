@@ -35,22 +35,22 @@ Item {
 
         ListElement {
             text: "1"
-            icon: "https://static.wikia.nocookie.net/memes9731/images/d/da/IA2G3ORVG.jpg/revision/latest/scale-to-width-down/250?cb=20200528160845&path-prefix=ru"
+            icon: "face1.png"
         }
 
         ListElement {
             text: "2"
-            icon: "https://avatanplus.com/files/resources/original/5791db7e03bbf15611c1643f.png"
+            icon: "face2.png"
         }
 
         ListElement {
             text: "3"
-            icon: "https://memepedia.ru/wp-content/uploads/2019/12/screenshot_22-1.png"
+            icon: "face3.png"
         }
 
         ListElement {
             text: "4"
-            icon: "https://www.meme-arsenal.com/memes/f4ea27de0c4f8ab0c50f3264cb66d06c.jpg"
+            icon: "face4.png"
         }
     }
 
